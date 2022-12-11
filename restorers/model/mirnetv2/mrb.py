@@ -1,3 +1,4 @@
+from typing import Optional
 import tensorflow as tf
 
 from .downsample import DownSampleBlock
@@ -7,73 +8,88 @@ from .upsample import UpSampleBlock
 
 
 class MultiScaleResidualBlock(tf.keras.layers.Layer):
+    """
+    Multi Scale Resolution Block.
+
+    Parameters:
+        channels (`int`): Number of channels of the feature maps.
+        channel_factor (`float`): The ration of channel.
+        groups (`int`): Number of groups for the group conv operation.
+    """
+
     def __init__(
         self, channels: int, channel_factor: float, groups: int, *args, **kwargs
     ):
         super().__init__(*args, **kwargs)
 
+        self.channels = channels
+        self.channel_factor = channel_factor
+        self.groups = groups
+
         # Residual Context Blocks
         self.rcb_top = ResidualContextBlock(
-            int(channels * channel_factor**0), groups=groups
+            int(self.channels * self.channel_factor**0), groups=self.groups
         )
         self.rcb_middle = ResidualContextBlock(
-            int(channels * channel_factor**1), groups=groups
+            int(self.channels * self.channel_factor**1), groups=self.groups
         )
         self.rcb_bottom = ResidualContextBlock(
-            int(channels * channel_factor**2), groups=groups
+            int(self.channels * self.channel_factor**2), groups=self.groups
         )
 
         # Downsample Blocks
         self.down_2 = DownSampleBlock(
-            channels=int((channel_factor**0) * channels),
+            channels=int((self.channel_factor**0) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
         self.down_4_1 = DownSampleBlock(
-            channels=int((channel_factor**0) * channels),
+            channels=int((self.channel_factor**0) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
         self.down_4_2 = DownSampleBlock(
-            channels=int((channel_factor**1) * channels),
+            channels=int((self.channel_factor**1) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
 
         # UpSample Blocks
         self.up21_1 = UpSampleBlock(
-            channels=int((channel_factor**1) * channels),
+            channels=int((self.channel_factor**1) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
         self.up21_2 = UpSampleBlock(
-            channels=int((channel_factor**1) * channels),
+            channels=int((self.channel_factor**1) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
         self.up32_1 = UpSampleBlock(
-            channels=int((channel_factor**2) * channels),
+            channels=int((self.channel_factor**2) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
         self.up32_2 = UpSampleBlock(
-            channels=int((channel_factor**2) * channels),
+            channels=int((self.channel_factor**2) * self.channels),
             scale_factor=2,
-            channel_factor=channel_factor,
+            channel_factor=self.channel_factor,
         )
 
         # SKFF Blocks
         self.skff_top = SelectiveKernelFeatureFusion(
-            channels=int(channels * channel_factor**0)
+            channels=int(self.channels * self.channel_factor**0)
         )
         self.skff_middle = SelectiveKernelFeatureFusion(
-            channels=int(channels * channel_factor**1)
+            channels=int(self.channels * self.channel_factor**1)
         )
 
         # Convolution
-        self.conv_out = tf.keras.layers.Conv2D(channels, kernel_size=1, padding="same")
+        self.conv_out = tf.keras.layers.Conv2D(
+            self.channels, kernel_size=1, padding="same"
+        )
 
-    def call(self, inputs, *args, **kwargs):
+    def call(self, inputs: tf.Tensor, training: Optional[bool] = None):
         x_top = inputs
         x_middle = self.down_2(x_top)
         x_bottom = self.down_4_2(self.down_4_1(x_top))
@@ -96,3 +112,10 @@ class MultiScaleResidualBlock(tf.keras.layers.Layer):
         output = output + inputs
 
         return output
+
+    def get_config(self):
+        return {
+            "channels": self.channels,
+            "groups": self.groups,
+            "channel_factor": self.channel_factor,
+        }

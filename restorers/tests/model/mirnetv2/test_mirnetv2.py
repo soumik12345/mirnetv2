@@ -3,13 +3,13 @@ import shutil
 
 import tensorflow as tf
 
-from mirnetv2.dataloader import LOLDataLoader, MITAdobe5KDataLoader
-from mirnetv2.model.downsample import DownBlock, DownSampleBlock
-from mirnetv2.model.mirnet import MirNetv2, RecursiveResidualGroup
-from mirnetv2.model.mrb import MultiScaleResidualBlock
-from mirnetv2.model.rcb import ContextBlock, ResidualContextBlock
-from mirnetv2.model.skff import SelectiveKernelFeatureFusion
-from mirnetv2.model.upsample import UpBlock, UpSampleBlock
+from restorers.model.mirnetv2.downsample import DownBlock, DownSampleBlock
+from restorers.model.mirnetv2.mirnet import RecursiveResidualGroup
+from restorers.model.mirnetv2.mrb import MultiScaleResidualBlock
+from restorers.model.mirnetv2.rcb import ContextBlock, ResidualContextBlock
+from restorers.model.mirnetv2.skff import SelectiveKernelFeatureFusion
+from restorers.model.mirnetv2.upsample import UpBlock, UpSampleBlock
+from restorers.model import MirNetv2
 
 
 class ModelTester(unittest.TestCase):
@@ -79,41 +79,3 @@ class ModelTester(unittest.TestCase):
             add_residual_connection=True,
         )(x)
         self.assertEqual(y.shape, (1, 256, 256, 3))
-
-
-class LowLightDataLoaderTester(unittest.TestCase):
-    def test_lol_dataloader(self):
-        data_loader = LOLDataLoader(
-            image_size=128,
-            bit_depth=8,
-            val_split=0.2,
-            visualize_on_wandb=False,
-            dataset_artifact_address="ml-colabs/mirnet-v2/lol-dataset:v0",
-        )
-        self.assertEqual(len(data_loader), 485)
-        train_dataset, val_dataset = data_loader.get_datasets(batch_size=1)
-        x, y = next(iter(train_dataset))
-        self.assertEqual(x.shape, (1, 128, 128, 3))
-        self.assertEqual(y.shape, (1, 128, 128, 3))
-        x, y = next(iter(val_dataset))
-        self.assertEqual(x.shape, (1, 128, 128, 3))
-        self.assertEqual(y.shape, (1, 128, 128, 3))
-        shutil.rmtree("./artifacts")
-
-    def test_mit_adobe_5k_dataloader(self):
-        data_loader = MITAdobe5KDataLoader(
-            image_size=128,
-            bit_depth=8,
-            val_split=0.2,
-            visualize_on_wandb=False,
-            dataset_artifact_address="ml-colabs/mirnet-v2/mit-adobe-5k:v1",
-        )
-        self.assertEqual(len(data_loader), 5000)
-        train_dataset, val_dataset = data_loader.get_datasets(batch_size=1)
-        x, y = next(iter(train_dataset))
-        self.assertEqual(x.shape, (1, 128, 128, 3))
-        self.assertEqual(y.shape, (1, 128, 128, 3))
-        x, y = next(iter(val_dataset))
-        self.assertEqual(x.shape, (1, 128, 128, 3))
-        self.assertEqual(y.shape, (1, 128, 128, 3))
-        shutil.rmtree("./artifacts")

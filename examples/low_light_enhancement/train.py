@@ -20,12 +20,12 @@ from ml_collections.config_flags import config_flags
 from wandb.keras import WandbMetricsLogger
 
 import wandb
-from mirnetv2.callbacks import LowLightEvaluationCallback
-from mirnetv2.dataloader import LOLDataLoader
-from mirnetv2.losses import CharbonnierLoss
-from mirnetv2.metrics import PSNRMetric, SSIMMetric
-from mirnetv2.model import MirNetv2
-from mirnetv2.utils import get_model_checkpoint_callback, initialize_device
+from restorers.callbacks import LowLightEvaluationCallback
+from restorers.dataloader import LOLDataLoader
+from restorers.losses import CharbonnierLoss
+from restorers.metrics import PSNRMetric, SSIMMetric
+from restorers.model import MirNetv2
+from restorers.utils import get_model_checkpoint_callback, initialize_device
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string(
@@ -71,6 +71,8 @@ def main(_):
         FLAGS.experiment_configs.data_loader_configs.local_batch_size
         * strategy.num_replicas_in_sync
     )
+    if using_wandb:
+        wandb.config.global_batch_size = batch_size
 
     data_loader = LOLDataLoader(
         image_size=FLAGS.experiment_configs.data_loader_configs.image_size,
@@ -125,7 +127,7 @@ def main(_):
 
     callbacks = [
         get_model_checkpoint_callback(
-            filepath="model", save_best_only=False, using_wandb=using_wandb
+            filepath="checkpoint", save_best_only=False, using_wandb=using_wandb
         )
     ]
     if using_wandb:

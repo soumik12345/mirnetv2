@@ -128,5 +128,12 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# WandB
 wandb/
 artifacts/
+
+# GitPod
+.gitpod.yml
+
+# Checkpoints
+examples/*/checkpoint/*
