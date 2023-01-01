@@ -1,0 +1,12 @@
+# mkdocs.yml
+site_name: Restorers
+
+theme: readthedocs
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - index.md
+  - models.md
+  - dataloader.md
