@@ -35,7 +35,7 @@ class LOLDataLoader(LowLightDatasetFactory):
         )
         self.num_data_points = len(low_light_images)
         num_train_images = int(self.num_data_points * (1 - val_split))
-        self.train_low_light_images = low_light_images[:num_train_images]
+        self.train_input_images = low_light_images[:num_train_images]
         self.train_enhanced_images = enhanced_images[:num_train_images]
-        self.val_low_light_images = low_light_images[num_train_images:]
+        self.val_input_images = low_light_images[num_train_images:]
         self.val_enhanced_images = enhanced_images[num_train_images:]

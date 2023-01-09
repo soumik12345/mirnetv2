@@ -15,11 +15,11 @@ train.py:
 """
 
 import tensorflow as tf
+import wandb
 from absl import app, flags, logging
 from ml_collections.config_flags import config_flags
 from wandb.keras import WandbMetricsLogger
 
-import wandb
 from restorers.callbacks import LowLightEvaluationCallback
 from restorers.dataloader import LOLDataLoader
 from restorers.losses import CharbonnierLoss

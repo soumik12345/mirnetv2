@@ -1,5 +1,5 @@
-import unittest
 import shutil
+import unittest
 
 import tensorflow as tf
 
